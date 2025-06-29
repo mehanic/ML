@@ -119,7 +119,6 @@ with open(whisper_srt_path, "w", encoding="utf-8") as f:
 
 print(f"\nSRT-path: {whisper_srt_path}")
 
-# Логгируем результаты Whisper
 wandb.log(
     {
         "whisper_transcription": result["text"],
@@ -127,9 +126,7 @@ wandb.log(
     }
 )
 
-# Загружаем srt-файлы
 wandb.save(srt_path)
 wandb.save(whisper_srt_path)
 
-# --- Завершаем сессию Weights & Biases ---
 wandb.finish()
