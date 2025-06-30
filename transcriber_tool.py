@@ -6,7 +6,7 @@ from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 @tool
 def transcribe_with_models(mp3_path: str) -> str:
     """
-    Распознаёт аудио двумя моделями: Wav2Vec2 и Whisper, логирует в W&B и возвращает текст.
+    two models: Wav2Vec2 и Whisper
     """
     wav_path = mp3_path.replace(".mp3", ".wav")
     wandb.init(project="audio-transcription", name="wav2vec2_vs_whisper")

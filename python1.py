@@ -7,26 +7,21 @@ import whisper
 import wandb
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 
-# --- Weights & Biases ---
 wandb.init(project="audio-transcription", name="wav2vec2_vs_whisper")
 
-# Пути к файлам
 mp3_path = "2-24_Leccion_24.mp3"
 wav_path = "2-24_Leccion_24.wav"
 
-# Логгируем исходный MP3
 wandb.log(
     {"audio_sample": wandb.Audio(mp3_path, caption="first MP3", sample_rate=16000)}
 )
 
-# Конвертация MP3 в WAV (если WAV ещё не существует)
 if not os.path.exists(wav_path):
     subprocess.run(
         ["ffmpeg", "-y", "-i", mp3_path, "-ar", "16000", "-ac", "1", wav_path],
         check=True,
     )
 
-# --- Wav2Vec2 распознавание ---
 model_name = "jonatasgrosman/wav2vec2-large-xlsr-53-arabic"
 processor = Wav2Vec2Processor.from_pretrained(model_name)
 model = Wav2Vec2ForCTC.from_pretrained(model_name)
@@ -58,7 +53,6 @@ print("Text sentenses (Wav2Vec2):")
 for sentence in sentences:
     print(sentence.strip())
 
-# --- SRT (Wav2Vec2) ---
 duration = waveform.shape[1] / 16000
 step = duration / max(len(sentences), 1)
 

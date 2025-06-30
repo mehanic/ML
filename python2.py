@@ -10,12 +10,10 @@ import torchaudio
 AUDIO_DIR = "audio/wav"
 SRT_DIR = "audio/srt"
 
-# Извлекаем арабские слова и цифры из текста
 def extract_arabic_words(text):
     words = re.findall(r'[\u0600-\u06FF0-9ـًٌٍَُِّْٰٓٔ]+', text)
     return words
 
-# Парсим SRT файл, возвращаем полный текст субтитров
 def parse_srt(filepath):
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
@@ -23,7 +21,6 @@ def parse_srt(filepath):
     full_text = " ".join(sub.content.strip() for sub in subs)
     return full_text
 
-# Сбор данных с добавлением метаданных
 def collect_arabic_data():
     data = []
     for srt_path in glob.glob(f"{SRT_DIR}/*_whisper.srt"):
@@ -62,24 +59,19 @@ def collect_arabic_data():
 
     return data
 
-# Собираем данные
 arabic_data = collect_arabic_data()
 
-# Создаем HF Dataset и кастим колонку "audio"
 arabic_dataset = Dataset.from_list(arabic_data)
 arabic_dataset = arabic_dataset.cast_column("audio", Audio(sampling_rate=16000))
 
-# Делим датасет на train/test (например, 90%/10%)
 split = arabic_dataset.train_test_split(test_size=0.1)
 train_dataset = split["train"]
 test_dataset = split["test"]
 
-# Сохраняем получившиеся датасеты в JSONL файлы для дальнейшего обучения
 train_dataset.to_json("arabic_train.jsonl", lines=True, force_ascii=False)
 test_dataset.to_json("arabic_test.jsonl", lines=True, force_ascii=False)
 arabic_dataset.to_json("arabic_dataset.jsonl", orient="records", lines=True, force_ascii=False)
 
-# Отдельный файл с арабским текстом
 with open("arabic_text_only.txt", "w", encoding="utf-8") as f:
     for item in arabic_data:
         f.write(item["text"] + "\n")

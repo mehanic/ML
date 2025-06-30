@@ -15,26 +15,20 @@ from typing import List, Dict, Union
 print("Transformers version:", transformers.__version__)
 print("TrainingArguments file path:", inspect.getfile(TrainingArguments))
 
-# Загружаем подготовленный датасет
 dataset = load_from_disk("data/arabic_prepared")
 
-# Загружаем процессор
 processor = Wav2Vec2Processor.from_pretrained(
     "jonatasgrosman/wav2vec2-large-xlsr-53-arabic"
 )
 
-# Загружаем модель
 model = Wav2Vec2ForCTC.from_pretrained(
     "jonatasgrosman/wav2vec2-large-xlsr-53-arabic",
     ctc_loss_reduction="mean",
     pad_token_id=processor.tokenizer.pad_token_id,
 )
 
-# Заморозка feature extractor и включение gradient checkpointing (если будет нужно)
 model.freeze_feature_encoder()
-# model.gradient_checkpointing_enable()  # На CPU это может только замедлять
 
-# Настройки тренировки для CPU
 training_args = TrainingArguments(
     output_dir="checkpoints",
     group_by_length=True,
@@ -42,8 +36,8 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=4,
     eval_strategy="no",
     num_train_epochs=3,
-    fp16=False,  # 💥 отключено, только для GPU
-    no_cuda=True,  # 💥 критически важно — отключает GPU
+    fp16=False,  #  GPU
+    no_cuda=True,  # GPU
     logging_steps=10,
     save_steps=500,
     save_total_limit=2,
@@ -52,7 +46,6 @@ training_args = TrainingArguments(
 )
 
 
-# Кастомный Data Collator
 @dataclass
 class DataCollatorCTCWithPaddingCustom:
     processor: Wav2Vec2Processor
@@ -84,10 +77,8 @@ class DataCollatorCTCWithPaddingCustom:
         return batch
 
 
-# Создаем collator
 data_collator = DataCollatorCTCWithPaddingCustom(processor=processor, padding=True)
 
-# Создаем Trainer
 trainer = Trainer(
     model=model,
     args=training_args,
@@ -96,7 +87,6 @@ trainer = Trainer(
     data_collator=data_collator,
 )
 
-# Старт обучения
 print("Starting training on CPU...")
 try:
     trainer.train()
